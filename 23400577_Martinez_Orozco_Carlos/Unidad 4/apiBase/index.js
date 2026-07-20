@@ -1,9 +1,105 @@
 const express= require('express');
 const morgan = require('morgan');
+const mongoose = require('mongoose');
+
 const app = express();
 const PORT = 3000;
 
+app.use(express.json());
+
 app.use(morgan("dev"));
+
+mongoose.connect("monogodb://127.0.0.1:27017/escuela")
+.then(()=>{ 
+    console.log("Connectado correctamente a MongoDB");
+})
+.catch((error) =>{
+    console.error("Error al conectar a MongoDB: ", error);
+})
+
+const alumnoSchema = new mongoose.Schema(
+    {
+        nombre: {type: String, required:true, trim:true},
+        carrera: {type: String, required:true, trim:true},
+        semestre: {type: Number, required:true, min:1}
+    },{
+        timestamps: true
+    }
+);
+
+const Alumno = mongoose.model("Alumno", alumnoSchema);
+
+app.get("/alumnos",(req,res) =>{
+    res.json(alumnos);
+})
+
+app.get("/alumnos/:id",(req,res) =>{
+    const id = Number(req.params.id);
+    const alumno = alumnos.find(alumno => alumno.id === id);
+    if (!alumno) {
+        return res.status(404).json({mensaje: "Alumno no encontrado"});
+    }  
+    res.json(alumno);
+})
+
+app.post("/alumnos",(req,res) =>{
+    const {nombre, carrera, semestre } = req.body;
+    if(!nombre || !carrera || !semestre){
+        return res.status(400).json({mensaje: "Faltan datos"});
+    }
+    const nuevoAlumno = {
+        id: alumnos.length + 1,
+        nombre: nombre,
+        carrera: carrera,
+        semestre: semestre
+    }
+    alumnos.push(nuevoAlumno);
+    res.json({mensaje: "Alumno resgistrado correctamente", alumno: nuevoAlumno});
+ })
+
+app.put("/alumnos/:id",(req,res) =>{
+    const id = parseInt(req.params.id);
+    const {nombre, carrera, semestre} = req.body;
+    if(!nombre || !carrera || !semestre){
+        return res.status(400).json({
+            mensaje: "Faltan datos del alumno"
+        });
+    }
+    const indice = alumnos.findIndex(alumno => alumno.id === id);
+    if(indice === -1){
+        return res.status(404).json({
+            mensaje: "Alumno no encontrado"
+        });
+    }
+    alumnos[indice] = {
+        id: id,
+        nombre: nombre,
+        carrera: carrera,
+        semestre: semestre
+    };
+    res.json({
+        mensaje: "Alumno actualizado correctamente",
+        alumno: alumnos[indice]
+    });
+});
+
+app.delete("/alumnos/:id",(req,res) =>{
+    const id = parseInt(req.params.id);
+    const indice = alumnos.findIndex(alumno => alumno.id === id);
+    if(indice === -1){
+        return res.status(404).json({
+            mensaje: "Alumno no encontrado"
+        });
+    }
+    const alumnoEliminado = alumnos(indice);
+    alumnos.splice(indice, 1);
+    res.json({
+        mensaje: "Alumno eliminado correctamente",
+        alumno: alumnoEliminado
+    });
+});
+
+// --------------------
 
 app.get("/", (req,res) =>{
     res.send("Hola Mundo");
