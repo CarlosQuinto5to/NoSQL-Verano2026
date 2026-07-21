@@ -80,13 +80,13 @@ app.get("/peliculas", async (req, res) => {
 app.get("/series/:id", async (req, res) => {
     try {
         const id = req.params.id;
-        const serie = await serie.findById(id);
-        if (!serie) {
+        const series = await serie.findById(id);
+        if (!series) {
             return res.status(404).json({
                 mensaje: "Serie no encontrada"
             });
         }
-        res.json(serie);
+        res.json(series);
     } catch (error) {
         res.status(500).json({
             mensaje: "Error al obtener el serie",
@@ -104,11 +104,167 @@ app.get("/peliculas/:id", async (req, res) => {
                 mensaje: "pelicula no encontrada"
             });
         }
-        res.json(pelicula);
+        res.json(peliculas);
     } catch (error) {
         res.status(500).json({
             mensaje: "Error al obtener el pelicula",
             error: error
         });
     }
+});
+
+app.post("/series", async (req, res) => {
+    try {
+        const { titulo, genero, año, temporadas, episodios, idioma, calificacion, nc } = req.body;
+        if(!titulo || !genero || !año || !temporadas || !episodios || !idioma || !calificacion || !nc){
+            return res.status(400).json({
+                mensaje: "Faltan datos de la serie"
+            });
+        }
+        
+        const nuevaSerie = new serie({
+            titulo, genero, año, temporadas, episodios, idioma, calificacion, nc
+        });
+
+        await nuevaSerie.save();
+        res.status(201).json({
+            mensaje: "Serie creada exitosamente",
+            serie: nuevaSerie
+        });
+    } catch (error) {
+        res.status(400).json({
+            mensaje: "Error al crear la serie",
+            error: error
+        });
+    }
+});
+
+app.post("/peliculas", async (req, res) => {
+    try {
+        const { titulo, genero, año, duracion, idioma,calificacion, nc } = req.body;
+        if(!titulo || !genero || !año || !duracion || !idioma || !calificacion || !nc){
+            return res.status(400).json({
+                mensaje: "Faltan datos de la pelicula"
+            });
+        }
+        
+        const nuevaPelicula = new pelicula({
+            titulo, genero, año, duracion, idioma, calificacion, nc
+        });
+
+        await nuevaPelicula.save();
+        res.status(201).json({
+            mensaje: "Pelicula creada exitosamente",
+            pelicula: nuevaPelicula
+        });
+    } catch (error) {
+        res.status(400).json({
+            mensaje: "Error al crear la pelicula",
+            error: error
+        });
+    }
+}); 
+
+
+app.put("/series/:id", async (req, res) => {
+    try {
+        const id = req.params.id;
+        const { titulo, genero, año, temporadas, episodios, idioma, calificacion, nc } = req.body;
+
+        const serieActualizada = await serie.findByIdAndUpdate(id, { titulo, 
+            genero, año, temporadas, episodios, idioma, calificacion, nc }, { new: true });
+
+        if (!serieActualizada) {
+            return res.status(404).json({
+                mensaje: "Serie no encontrada"
+            });
+        }
+
+        res.json({
+            mensaje: "Serie actualizada exitosamente",
+            serie: serieActualizada
+        });
+    } catch (error) {
+        res.status(400).json({
+            mensaje: "Error al actualizar la serie",
+            error: error
+        });
+    }
+});
+
+app.put("/peliculas/:id", async (req, res) => {
+    try {
+        const id = req.params.id;
+        const { titulo, genero, año, duracion, idioma, calificacion, nc } = req.body;
+
+        const peliculaActualizada = await pelicula.findByIdAndUpdate(id, { titulo, genero, año, duracion, idioma, calificacion, nc }, { new: true });
+
+        if (!peliculaActualizada) {
+            return res.status(404).json({
+                mensaje: "Pelicula no encontrada"
+            });
+        }
+
+        res.json({
+            mensaje: "Pelicula actualizada exitosamente",
+            pelicula: peliculaActualizada
+        });
+    } catch (error) {
+        res.status(400).json({
+            mensaje: "Error al actualizar la pelicula",
+            error: error
+        });
+    }
+});
+
+app.delete("/series/:id", async (req, res) => {
+    try {
+        const id = req.params.id;
+        const serieEliminada = await serie.findByIdAndDelete(id);
+
+        if (!serieEliminada) {
+            return res.status(404).json({
+                mensaje: "Serie no encontrada"
+            });
+        }
+
+        res.json({
+            mensaje: "Serie eliminada exitosamente",
+            serie: serieEliminada
+        });
+    } catch (error) {
+        res.status(400).json({
+            mensaje: "Error al eliminar la serie",
+            error: error
+        });
+    }
+});
+
+app.delete("/peliculas/:id", async (req, res) => {
+    try {
+        const id = req.params.id;
+        const peliculaEliminada = await pelicula.findByIdAndDelete(id);
+
+        if (!peliculaEliminada) {
+            return res.status(404).json({
+                mensaje: "Pelicula no encontrada"
+            });
+        }
+
+        res.json({
+            mensaje: "Pelicula eliminada exitosamente",
+            pelicula: peliculaEliminada
+        });
+    } catch (error) {
+        res.status(400).json({
+            mensaje: "Error al eliminar la pelicula",
+            error: error
+        });
+    }
+});
+
+///
+
+app.get("/", (req,res) =>{
+    res.send("Hola Mundo, API");
 });
